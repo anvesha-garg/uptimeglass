@@ -1,0 +1,9 @@
+# Always use LF line endings in the repo, even when you work on Windows.
+# This stops shell scripts and Docker files from breaking with CRLF.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff2 binary

@@ -1,0 +1,31 @@
+# ---- Secrets: this MUST stay the first rule ----
+.env
+.env.*
+!.env.example
+*.pem
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# ---- Node / frontend ----
+node_modules/
+frontend/dist/
+*.log
+
+# ---- Editors and OS ----
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini
+.DS_Store
