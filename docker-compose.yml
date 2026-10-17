@@ -1,0 +1,37 @@
+name: uptimeglass
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    # Local development credentials only. Production uses its own secrets.
+    environment:
+      POSTGRES_USER: uptimeglass
+      POSTGRES_PASSWORD: uptimeglass
+      POSTGRES_DB: uptimeglass
+    ports:
+      # 127.0.0.1 = reachable only from this computer
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uptimeglass -d uptimeglass"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # No volume on purpose: Redis only holds cache, rate limits and pub/sub,
+    # so losing its data on restart is fine.
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
