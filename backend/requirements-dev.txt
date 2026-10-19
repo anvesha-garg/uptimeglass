@@ -1,4 +1,7 @@
-# Tools used for development and CI. Runtime dependencies come in Phase 1.
+
+# Tools used for development and CI. "-r" pulls in the runtime packages too.
+-r requirements.txt
 pytest==8.3.4
+pytest-asyncio==0.25.0
 ruff==0.8.4
 pre-commit==4.0.1
