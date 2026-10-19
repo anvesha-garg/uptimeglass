@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: backend/requirements-dev.txt
+          cache-dependency-path: backend/requirements*.txt
       - run: pip install -r backend/requirements-dev.txt
       - run: ruff check backend
       - run: ruff format --check backend
@@ -30,13 +30,30 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    # A real Postgres for the tests, thrown away after the run.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: uptimeglass
+          POSTGRES_PASSWORD: uptimeglass
+          POSTGRES_DB: uptimeglass_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U uptimeglass -d uptimeglass_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+asyncpg://uptimeglass:uptimeglass@localhost:5432/uptimeglass_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: backend/requirements-dev.txt
+          cache-dependency-path: backend/requirements*.txt
       - run: pip install -r requirements-dev.txt
       - run: pytest
 
