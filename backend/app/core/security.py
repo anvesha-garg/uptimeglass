@@ -15,8 +15,14 @@ from app.core.errors import AppError
 ALGORITHM = "HS256"
 ACCESS_TOKEN_TYPE = "access"
 
-# Default argon2 settings are the library's recommended ones. They add a random salt for us.
-_hasher = PasswordHasher()
+# Tests create many users, so they use the cheapest argon2 settings. Real runs use the
+# library's recommended defaults. The settings are stored inside each hash, so verifying
+# works whichever settings created it.
+_hasher = (
+    PasswordHasher(time_cost=1, memory_cost=8, parallelism=1)
+    if settings.env == "test"
+    else PasswordHasher()
+)
 
 
 def hash_password(password: str) -> str:
