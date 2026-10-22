@@ -5,7 +5,7 @@ import os
 # These must be set BEFORE the app is imported, because settings are read at import time.
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL",
-    "postgresql+asyncpg://uptimeglass:uptimeglass@localhost:5433/uptimeglass_test",
+    "postgresql+asyncpg://uptimeglass:uptimeglass@127.0.0.1:5433/uptimeglass_test",
 )
 # Safety lock: tests drop tables, so they must never point at the dev database.
 assert TEST_DATABASE_URL.rsplit("/", 1)[-1].endswith("_test"), "Test DB name must end with _test"
@@ -23,6 +23,26 @@ import app.models  # noqa: E402, F401
 from app.db.base import Base  # noqa: E402
 from app.db.session import get_db  # noqa: E402
 from app.main import app  # noqa: E402
+from app.services import ssrf  # noqa: E402
+
+# Names the monitor tests use. They resolve to a fixed address, so no real DNS is needed.
+FAKE_DNS = {
+    "example.com": ["93.184.216.34"],
+    "other.example.com": ["93.184.216.35"],
+    "internal.example.com": ["10.0.0.5"],
+}
+
+
+@pytest.fixture(autouse=True)
+def fake_dns(monkeypatch):
+    real_resolver = ssrf.system_resolver
+
+    async def resolver(host: str, port: int) -> list[str]:
+        if host in FAKE_DNS:
+            return FAKE_DNS[host]
+        return await real_resolver(host, port)
+
+    monkeypatch.setattr(ssrf, "system_resolver", resolver)
 
 
 @pytest.fixture
