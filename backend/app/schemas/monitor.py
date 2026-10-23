@@ -20,9 +20,11 @@ class MonitorCreate(BaseModel):
     keyword: str | None = Field(default=None, min_length=1, max_length=200)
 
     @model_validator(mode="after")
-    def timeout_below_interval(self) -> "MonitorCreate":
+    def check_combinations(self) -> "MonitorCreate":
         if self.timeout_seconds >= self.interval_seconds:
             raise ValueError("timeout_seconds must be less than interval_seconds")
+        if self.method == "HEAD" and self.keyword is not None:
+            raise ValueError("keyword checks need method GET, because HEAD responses have no body")
         return self
 
 
