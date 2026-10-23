@@ -3,14 +3,14 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.v1 import auth, health, monitors
+from app.api.v1 import auth, health, incidents, monitors
 from app.core.errors import register_exception_handlers
 from app.db.session import engine
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    # The embedded worker will start here in Phase 3.
+    # The embedded worker will start here in Phase 3, Part C.
     yield
     await engine.dispose()
 
@@ -22,3 +22,4 @@ register_exception_handlers(app)
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(monitors.router, prefix="/api/v1")
+app.include_router(incidents.router, prefix="/api/v1")
