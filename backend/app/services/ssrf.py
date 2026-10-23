@@ -36,6 +36,10 @@ class UrlNotAllowed(Exception):
     """The URL is malformed, or it points somewhere we must never connect to."""
 
 
+class HostNotResolved(UrlNotAllowed):
+    """The host name has no DNS answer. The checker reports this as "dns", not "blocked"."""
+
+
 @dataclass(frozen=True)
 class ValidatedTarget:
     url: str
@@ -100,9 +104,9 @@ async def validate_url(url: str, resolver: Resolver | None = None) -> ValidatedT
         ips = await asyncio.wait_for(resolve(host, port), timeout=DNS_TIMEOUT_SECONDS)
     except (OSError, TimeoutError, UnicodeError):
         # OSError covers "name not found". UnicodeError covers broken international names.
-        raise UrlNotAllowed("The host name could not be resolved.") from None
+        raise HostNotResolved("The host name could not be resolved.") from None
     if not ips:
-        raise UrlNotAllowed("The host name could not be resolved.")
+        raise HostNotResolved("The host name could not be resolved.")
     # Every address must be public. One private answer rejects the whole host.
     if any(is_blocked_ip(ip) for ip in ips):
         raise UrlNotAllowed("The URL points to a private or internal address.")
