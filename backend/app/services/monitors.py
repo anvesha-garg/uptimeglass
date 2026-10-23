@@ -37,6 +37,15 @@ def check_timeout_below_interval(timeout_seconds: int, interval_seconds: int) ->
         )
 
 
+def check_keyword_needs_get(method: str, keyword: str | None) -> None:
+    if method == "HEAD" and keyword is not None:
+        raise AppError(
+            422,
+            "validation_error",
+            "keyword checks need method GET, because HEAD responses have no body",
+        )
+
+
 async def create_monitor(db: AsyncSession, user: User, data: dict) -> Monitor:
     await check_url_is_safe(data["url"])
 
@@ -66,6 +75,14 @@ async def create_monitor(db: AsyncSession, user: User, data: dict) -> Monitor:
 
 
 async def update_monitor(db: AsyncSession, monitor: Monitor, changes: dict) -> Monitor:
+    # Cheap rules first, using the new values merged with the stored ones.
+    interval = changes.get("interval_seconds", monitor.interval_seconds)
+    timeout = changes.get("timeout_seconds", monitor.timeout_seconds)
+    check_timeout_below_interval(timeout, interval)
+    method = changes.get("method", monitor.method)
+    keyword = changes["keyword"] if "keyword" in changes else monitor.keyword
+    check_keyword_needs_get(method, keyword)
+
     if "url" in changes and changes["url"] != monitor.url:
         await check_url_is_safe(changes["url"])
         # Old results belong to the old URL, so start fresh.
@@ -75,10 +92,6 @@ async def update_monitor(db: AsyncSession, monitor: Monitor, changes: dict) -> M
         monitor.ssl_expires_at = None
         monitor.last_checked_at = None
         monitor.next_check_at = datetime.now(UTC)
-
-    interval = changes.get("interval_seconds", monitor.interval_seconds)
-    timeout = changes.get("timeout_seconds", monitor.timeout_seconds)
-    check_timeout_below_interval(timeout, interval)
 
     for field, value in changes.items():
         setattr(monitor, field, value)
