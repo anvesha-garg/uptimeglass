@@ -24,6 +24,10 @@ MAX_DETAIL_LENGTH = 500
 REDIRECT_STATUSES = {301, 302, 303, 307, 308}
 USER_AGENT = "UptimeGlass/1.0 (+https://github.com/anvesha-garg/uptimeglass)"
 
+# Loading the certificate bundle is slow (it reads a file), so it is done ONCE and shared.
+# The default context verifies certificates and host names.
+_SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
+
 # Takes a URL and returns the validated target. Tests pass a fake one.
 Validator = Callable[[str], Awaitable[ValidatedTarget]]
 
@@ -75,11 +79,11 @@ class PinnedBackend(httpcore.AnyIOBackend):
 
 class PinnedTransport(httpx.AsyncHTTPTransport):
     def __init__(self, ip: str) -> None:
-        super().__init__()
+        # Passing the shared context stops httpx from building (and loading) its own.
+        super().__init__(verify=_SSL_CONTEXT)
         # Replace the connection pool httpx built with one that uses our pinned backend.
-        # Certificates and host names are verified (the default context does both).
         self._pool = httpcore.AsyncConnectionPool(
-            ssl_context=ssl.create_default_context(cafile=certifi.where()),
+            ssl_context=_SSL_CONTEXT,
             max_connections=1,
             network_backend=PinnedBackend(ip),
         )
