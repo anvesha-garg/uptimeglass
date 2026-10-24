@@ -1,17 +1,40 @@
+import asyncio
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
 from app.api.v1 import auth, health, incidents, monitors
+from app.core.config import settings
 from app.core.errors import register_exception_handlers
-from app.db.session import engine
+from app.db.session import SessionLocal, engine
+from app.worker.scheduler import run_forever
+
+logger = logging.getLogger(__name__)
+
+# How long shutdown waits for the embedded worker to finish its current cycle.
+WORKER_STOP_TIMEOUT_SECONDS = 30
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    # The embedded worker will start here in Phase 3, Part C.
+    stop_event = asyncio.Event()
+    worker = None
+    # Embedded mode: the API process also runs the scheduler (single-service hosting).
+    # Never in tests, so a test cannot start a background loop by accident.
+    if settings.run_embedded_worker and settings.env != "test":
+        worker = asyncio.create_task(run_forever(SessionLocal, stop_event))
+        logger.info("Embedded worker started.")
+
     yield
+
+    if worker is not None:
+        stop_event.set()
+        try:
+            await asyncio.wait_for(worker, timeout=WORKER_STOP_TIMEOUT_SECONDS)
+        except TimeoutError:
+            logger.warning("Embedded worker did not stop in time.")
     await engine.dispose()
 
 
