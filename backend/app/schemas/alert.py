@@ -50,3 +50,7 @@ class ChannelList(BaseModel):
 
 class MonitorChannelsUpdate(BaseModel):
     channel_ids: list[UUID] = Field(max_length=MAX_CHANNELS_PER_MONITOR)
+
+
+class VerifyRequest(BaseModel):
+    code: str = Field(pattern=r"^\d{6}$")
