@@ -1,5 +1,5 @@
 # Importing the models here makes sure Alembic and Base.metadata can see every table.
-from app.models.alert import AlertChannel, MonitorAlertChannel
+from app.models.alert import AlertChannel, AlertEvent, MonitorAlertChannel
 from app.models.check_result import CheckResult
 from app.models.incident import Incident
 from app.models.monitor import Monitor
@@ -8,6 +8,7 @@ from app.models.user import User
 
 __all__ = [
     "AlertChannel",
+    "AlertEvent",
     "CheckResult",
     "Incident",
     "Monitor",
