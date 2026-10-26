@@ -1,4 +1,4 @@
-"""Alert channels, and the choice of which channels each monitor uses."""
+"""Alert channels, their verification, and the choice of which channels each monitor uses."""
 
 from uuid import UUID
 
@@ -9,7 +9,9 @@ from app.schemas.alert import (
     ChannelCreate,
     ChannelCreated,
     ChannelList,
+    ChannelOut,
     MonitorChannelsUpdate,
+    VerifyRequest,
 )
 from app.services import alerts as service
 from app.services.monitors import get_owned_monitor
@@ -34,6 +36,25 @@ async def list_channels(user: CurrentUser, db: DbSession):
 async def delete_channel(channel_id: UUID, user: CurrentUser, db: DbSession) -> None:
     channel = await service.get_owned_channel(db, user, channel_id)
     await service.delete_channel(db, channel)
+
+
+@router.post("/alert-channels/{channel_id}/send-code", status_code=204)
+async def send_code(channel_id: UUID, user: CurrentUser, db: DbSession) -> None:
+    channel = await service.get_owned_channel(db, user, channel_id)
+    await service.send_email_code(db, channel)
+
+
+@router.post("/alert-channels/{channel_id}/verify", response_model=ChannelOut)
+async def verify_channel(channel_id: UUID, body: VerifyRequest, user: CurrentUser, db: DbSession):
+    channel = await service.get_owned_channel(db, user, channel_id)
+    channel = await service.verify_email(db, channel, body.code)
+    return service.channel_to_out(channel)
+
+
+@router.post("/alert-channels/{channel_id}/test", status_code=204)
+async def test_channel(channel_id: UUID, user: CurrentUser, db: DbSession) -> None:
+    channel = await service.get_owned_channel(db, user, channel_id)
+    await service.send_test(channel)
 
 
 @router.get("/monitors/{monitor_id}/alert-channels", response_model=ChannelList)
