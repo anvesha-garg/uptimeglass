@@ -7,8 +7,10 @@ import asyncio
 import logging
 import signal
 
+from app.core.config import settings
 from app.db.session import SessionLocal, engine
 from app.worker.scheduler import run_forever
+from app.worker.telegram_poller import run_telegram_polling
 
 logger = logging.getLogger("uptimeglass.worker")
 
@@ -23,9 +25,15 @@ async def main() -> None:
             # Windows cannot do this. Ctrl+C is handled below instead.
             pass
 
+    jobs = [run_forever(SessionLocal, stop_event)]
+    # Telegram allows only one program to poll a bot. When the API runs the embedded
+    # worker, it already polls, so this process stays out of the way.
+    if not settings.run_embedded_worker:
+        jobs.append(run_telegram_polling(SessionLocal, stop_event))
+
     logger.info("Worker started. Press Ctrl+C to stop.")
     try:
-        await run_forever(SessionLocal, stop_event)
+        await asyncio.gather(*jobs)
     finally:
         await engine.dispose()
         logger.info("Worker stopped.")

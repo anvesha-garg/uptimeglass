@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.db.session import SessionLocal, engine
 from app.worker.scheduler import run_forever
+from app.worker.telegram_poller import run_telegram_polling
 
 logger = logging.getLogger(__name__)
 
@@ -20,19 +21,20 @@ WORKER_STOP_TIMEOUT_SECONDS = 30
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     stop_event = asyncio.Event()
-    worker = None
+    workers: list[asyncio.Task] = []
     # Embedded mode: the API process also runs the scheduler (single-service hosting).
     # Never in tests, so a test cannot start a background loop by accident.
     if settings.run_embedded_worker and settings.env != "test":
-        worker = asyncio.create_task(run_forever(SessionLocal, stop_event))
+        workers.append(asyncio.create_task(run_forever(SessionLocal, stop_event)))
+        workers.append(asyncio.create_task(run_telegram_polling(SessionLocal, stop_event)))
         logger.info("Embedded worker started.")
 
     yield
 
-    if worker is not None:
+    if workers:
         stop_event.set()
         try:
-            await asyncio.wait_for(worker, timeout=WORKER_STOP_TIMEOUT_SECONDS)
+            await asyncio.wait_for(asyncio.gather(*workers), timeout=WORKER_STOP_TIMEOUT_SECONDS)
         except TimeoutError:
             logger.warning("Embedded worker did not stop in time.")
     await engine.dispose()
