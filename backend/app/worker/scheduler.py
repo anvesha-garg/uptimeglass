@@ -14,9 +14,10 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.alerts.dispatcher import dispatch_recorded
 from app.models import Monitor
 from app.services.checker import CheckOutcome, run_check
-from app.services.results import record_check
+from app.services.results import RecordedCheck, record_check
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,8 @@ class MonitorSnapshot:
 
 # Takes a snapshot and returns the check outcome. Tests pass a fake one.
 Checker = Callable[[MonitorSnapshot], Awaitable[CheckOutcome]]
+# Takes the session factory and a recorded check, and sends any alerts it calls for.
+Notifier = Callable[[SessionFactory, RecordedCheck], Awaitable[object]]
 
 
 async def default_checker(snapshot: MonitorSnapshot) -> CheckOutcome:
@@ -94,24 +97,36 @@ async def _check_and_record(
     session_factory: SessionFactory,
     snapshot: MonitorSnapshot,
     checker: Checker,
+    notifier: Notifier,
     semaphore: asyncio.Semaphore,
     record_now: datetime | None,
 ) -> None:
+    recorded = None
     async with semaphore:
         try:
             outcome = await checker(snapshot)
             # Each check saves with its own session, so concurrent checks never share one.
             async with session_factory() as db:
-                await record_check(db, snapshot.id, outcome, now=record_now)
+                recorded = await record_check(db, snapshot.id, outcome, now=record_now)
         except Exception:
             # One broken monitor must never stop the others. The lease makes it retry later.
             logger.exception("Check failed to complete for monitor %s", snapshot.id)
+            return
+
+    # Alerts are sent after the semaphore is released, so a slow webhook holds no check slot.
+    if recorded is not None:
+        try:
+            await notifier(session_factory, recorded)
+        except Exception:
+            # An alert problem must never affect checking.
+            logger.exception("Sending alerts failed for monitor %s", snapshot.id)
 
 
 async def run_cycle(
     session_factory: SessionFactory,
     checker: Checker = default_checker,
     *,
+    notifier: Notifier = dispatch_recorded,
     now: datetime | None = None,
     max_concurrent: int = MAX_CONCURRENT_CHECKS,
     batch_size: int = BATCH_SIZE,
@@ -128,7 +143,7 @@ async def run_cycle(
 
     semaphore = asyncio.Semaphore(max_concurrent)
     await asyncio.gather(
-        *(_check_and_record(session_factory, s, checker, semaphore, now) for s in claimed)
+        *(_check_and_record(session_factory, s, checker, notifier, semaphore, now) for s in claimed)
     )
     return len(claimed)
 
@@ -138,12 +153,13 @@ async def run_forever(
     stop_event: asyncio.Event,
     *,
     checker: Checker = default_checker,
+    notifier: Notifier = dispatch_recorded,
     poll_interval: float = POLL_INTERVAL_SECONDS,
 ) -> None:
     """Run cycles until stop_event is set. Errors are logged and the loop keeps going."""
     while not stop_event.is_set():
         try:
-            await run_cycle(session_factory, checker)
+            await run_cycle(session_factory, checker, notifier=notifier)
         except Exception:
             # For example the database is briefly down. Try again on the next round.
             logger.exception("Scheduler cycle failed")
