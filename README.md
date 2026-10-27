@@ -43,6 +43,7 @@ docs/       Architecture notes (from Phase 13)
 The project is built in 14 phases, from foundation to deployment.
 This section will be filled in as phases are merged.
 
+currently in the Phase 5 of building-
 ## License
 
 To be added.
