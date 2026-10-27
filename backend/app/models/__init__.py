@@ -4,12 +4,14 @@ from app.models.check_result import CheckResult
 from app.models.incident import Incident
 from app.models.monitor import Monitor
 from app.models.refresh_token import RefreshToken
+from app.models.rollup import CheckRollupHourly
 from app.models.user import User
 
 __all__ = [
     "AlertChannel",
     "AlertEvent",
     "CheckResult",
+    "CheckRollupHourly",
     "Incident",
     "Monitor",
     "MonitorAlertChannel",
