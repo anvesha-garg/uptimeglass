@@ -89,6 +89,7 @@ async def update_monitor(db: AsyncSession, monitor: Monitor, changes: dict) -> M
         monitor.status = "PAUSED" if monitor.is_paused else "PENDING"
         monitor.consecutive_failures = 0
         monitor.consecutive_successes = 0
+        monitor.consecutive_slow = 0
         monitor.ssl_expires_at = None
         monitor.last_checked_at = None
         monitor.next_check_at = datetime.now(UTC)
@@ -113,6 +114,7 @@ async def resume_monitor(db: AsyncSession, monitor: Monitor) -> Monitor:
     monitor.status = "PENDING"
     monitor.consecutive_failures = 0
     monitor.consecutive_successes = 0
+    monitor.consecutive_slow = 0
     monitor.next_check_at = datetime.now(UTC)
     await db.commit()
     await db.refresh(monitor)

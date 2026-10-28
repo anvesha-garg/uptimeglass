@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from app.models import Monitor
+from app.services.anomaly import SLOW_STREAK, detect_anomaly
 from app.services.checker import CheckOutcome
 
 FAILURE_THRESHOLD = 3  # failures in a row before a monitor is DOWN
@@ -16,11 +17,19 @@ class Transition:
     old_status: str
     new_status: str
     went_down: bool = False  # the monitor just entered DOWN: open an incident
-    recovered: bool = False  # the monitor just returned to UP: resolve any open incident
+    recovered: bool = False  # the monitor just left DOWN or PENDING for UP: resolve any incident
 
 
-def apply_outcome(monitor: Monitor, outcome: CheckOutcome, now: datetime) -> Transition:
-    """Update the monitor's status, counters and next check time. Does not touch the database."""
+def apply_outcome(
+    monitor: Monitor,
+    outcome: CheckOutcome,
+    now: datetime,
+    baseline: list[int] | None = None,
+) -> Transition:
+    """Update the monitor's status, counters and next check time. Does not touch the database.
+
+    baseline: recent successful latencies (not including this check), for DEGRADED detection.
+    """
     old_status = monitor.status
     if monitor.is_paused:
         # A result that arrives after the user paused the monitor changes nothing.
@@ -36,16 +45,17 @@ def apply_outcome(monitor: Monitor, outcome: CheckOutcome, now: datetime) -> Tra
     if outcome.success:
         monitor.consecutive_failures = 0
         monitor.consecutive_successes += 1
-        if old_status != "DOWN":
-            monitor.status = "UP"
-            wait = interval
-        elif monitor.consecutive_successes >= RECOVERY_THRESHOLD:
-            monitor.status = "UP"
-            wait = interval
-        else:
+        slow = outcome.latency_ms is not None and detect_anomaly(outcome.latency_ms, baseline or [])
+        monitor.consecutive_slow = monitor.consecutive_slow + 1 if slow else 0
+        if old_status == "DOWN" and monitor.consecutive_successes < RECOVERY_THRESHOLD:
             wait = retry  # still DOWN, confirming the recovery
+        else:
+            # Slow but answering: DEGRADED. This never opens an incident.
+            monitor.status = "DEGRADED" if monitor.consecutive_slow >= SLOW_STREAK else "UP"
+            wait = interval
     else:
         monitor.consecutive_successes = 0
+        monitor.consecutive_slow = 0
         monitor.consecutive_failures += 1
         if old_status == "DOWN":
             wait = interval  # already DOWN: no new incident, normal schedule
@@ -60,5 +70,8 @@ def apply_outcome(monitor: Monitor, outcome: CheckOutcome, now: datetime) -> Tra
         old_status=old_status,
         new_status=monitor.status,
         went_down=old_status != "DOWN" and monitor.status == "DOWN",
-        recovered=outcome.success and monitor.status == "UP" and old_status != "UP",
+        # Leaving DEGRADED needs no incident work, because DEGRADED never opens one.
+        recovered=outcome.success
+        and monitor.status in ("UP", "DEGRADED")
+        and old_status in ("DOWN", "PENDING"),
     )

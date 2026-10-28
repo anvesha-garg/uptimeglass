@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import CheckResult, Incident, Monitor
+from app.services.anomaly import BASELINE_SIZE
 from app.services.checker import CheckOutcome
 from app.services.state_machine import Transition, apply_outcome
 
@@ -24,6 +25,21 @@ async def _open_incident(db: AsyncSession, monitor_id: UUID) -> Incident | None:
     return await db.scalar(
         select(Incident).where(Incident.monitor_id == monitor_id, Incident.status == "open")
     )
+
+
+async def _baseline(db: AsyncSession, monitor_id: UUID) -> list[int]:
+    """Latencies of the most recent successful checks (the current one is not saved yet)."""
+    rows = await db.scalars(
+        select(CheckResult.latency_ms)
+        .where(
+            CheckResult.monitor_id == monitor_id,
+            CheckResult.success.is_(True),
+            CheckResult.latency_ms.is_not(None),
+        )
+        .order_by(CheckResult.checked_at.desc())
+        .limit(BASELINE_SIZE)
+    )
+    return list(rows)
 
 
 async def record_check(
@@ -46,7 +62,8 @@ async def record_check(
         await db.rollback()
         return None
 
-    transition = apply_outcome(monitor, outcome, now)
+    baseline = await _baseline(db, monitor.id) if outcome.success else None
+    transition = apply_outcome(monitor, outcome, now, baseline)
     result = CheckResult(
         monitor_id=monitor.id,
         checked_at=now,
