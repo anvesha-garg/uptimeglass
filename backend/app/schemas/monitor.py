@@ -58,6 +58,7 @@ class MonitorOut(BaseModel):
     status: str
     consecutive_failures: int
     consecutive_successes: int
+    consecutive_slow: int
     next_check_at: datetime
     last_checked_at: datetime | None
     ssl_expires_at: datetime | None

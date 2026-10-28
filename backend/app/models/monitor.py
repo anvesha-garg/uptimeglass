@@ -36,6 +36,8 @@ class Monitor(Base):
     status: Mapped[str] = mapped_column(String(10), default="PENDING")
     consecutive_failures: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     consecutive_successes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # Successful checks in a row that were much slower than usual (see services/anomaly.py).
+    consecutive_slow: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     next_check_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     last_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     ssl_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
