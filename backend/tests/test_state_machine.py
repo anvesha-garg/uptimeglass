@@ -17,6 +17,7 @@ def make_monitor(**overrides) -> Monitor:
         "interval_seconds": 300,
         "consecutive_failures": 0,
         "consecutive_successes": 0,
+        "consecutive_slow": 0,
         "next_check_at": NOW,
         "last_checked_at": None,
         "ssl_expires_at": None,
@@ -148,3 +149,18 @@ def test_full_cycle_up_down_up():
         ("DOWN", False, False),
         ("UP", False, True),
     ]
+
+
+def test_leaving_degraded_for_up_does_not_resolve_incidents():
+    monitor = make_monitor(status="DEGRADED", consecutive_slow=3)
+    transition = apply_outcome(monitor, OK, NOW)
+    assert monitor.status == "UP"
+    assert transition.recovered is False
+
+
+def test_a_failure_in_degraded_follows_the_normal_down_rules():
+    monitor = make_monitor(status="DEGRADED", consecutive_slow=3, consecutive_failures=2)
+    transition = apply_outcome(monitor, FAIL, NOW)
+    assert monitor.status == "DOWN"
+    assert monitor.consecutive_slow == 0
+    assert transition.went_down is True
