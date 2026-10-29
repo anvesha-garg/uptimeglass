@@ -9,7 +9,7 @@ from app.main import app
 
 @pytest.fixture
 def events(monkeypatch) -> list[str]:
-    """Replaces the scheduler loop and the Telegram poller with fakes."""
+    """Replaces the scheduler loop, the Telegram poller and the retention loop with fakes."""
     recorded: list[str] = []
 
     async def fake_run_forever(session_factory, stop_event, **kwargs):
@@ -17,11 +17,12 @@ def events(monkeypatch) -> list[str]:
         await stop_event.wait()
         recorded.append("stopped")
 
-    async def fake_polling(session_factory, stop_event, **kwargs):
+    async def fake_idle(session_factory, stop_event, **kwargs):
         await stop_event.wait()
 
     monkeypatch.setattr(main_module, "run_forever", fake_run_forever)
-    monkeypatch.setattr(main_module, "run_telegram_polling", fake_polling)
+    monkeypatch.setattr(main_module, "run_telegram_polling", fake_idle)
+    monkeypatch.setattr(main_module, "run_retention_loop", fake_idle)
     return recorded
 
 
