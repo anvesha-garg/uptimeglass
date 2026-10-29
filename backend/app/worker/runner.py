@@ -9,6 +9,7 @@ import signal
 
 from app.core.config import settings
 from app.db.session import SessionLocal, engine
+from app.worker.retention_loop import run_retention_loop
 from app.worker.scheduler import run_forever
 from app.worker.telegram_poller import run_telegram_polling
 
@@ -25,7 +26,7 @@ async def main() -> None:
             # Windows cannot do this. Ctrl+C is handled below instead.
             pass
 
-    jobs = [run_forever(SessionLocal, stop_event)]
+    jobs = [run_forever(SessionLocal, stop_event), run_retention_loop(SessionLocal, stop_event)]
     # Telegram allows only one program to poll a bot. When the API runs the embedded
     # worker, it already polls, so this process stays out of the way.
     if not settings.run_embedded_worker:
