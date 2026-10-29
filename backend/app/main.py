@@ -9,6 +9,7 @@ from app.api.v1 import alerts, analytics, auth, health, incidents, monitors
 from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.db.session import SessionLocal, engine
+from app.worker.retention_loop import run_retention_loop
 from app.worker.scheduler import run_forever
 from app.worker.telegram_poller import run_telegram_polling
 
@@ -27,6 +28,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     if settings.run_embedded_worker and settings.env != "test":
         workers.append(asyncio.create_task(run_forever(SessionLocal, stop_event)))
         workers.append(asyncio.create_task(run_telegram_polling(SessionLocal, stop_event)))
+        workers.append(asyncio.create_task(run_retention_loop(SessionLocal, stop_event)))
         logger.info("Embedded worker started.")
 
     yield
