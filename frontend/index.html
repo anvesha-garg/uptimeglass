@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="description" content="UptimeGlass: website uptime and performance monitoring." />
+    <title>UptimeGlass</title>
+    <script>
+      // Runs before the first paint, so the saved theme never flashes the wrong colors.
+      try {
+        var saved = localStorage.getItem("uptimeglass-theme");
+        if (saved === "light" || saved === "dark") {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      } catch (error) {
+        /* storage can be blocked: the default dark theme is fine */
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
