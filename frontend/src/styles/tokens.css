@@ -1,0 +1,98 @@
+/* Design tokens. Every color, radius and blur in the app comes from here.
+   Dark is the default; light overrides the same names. */
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Page and background blobs */
+  --bg-base: #060913;
+  --blob-1: #5b4bff;
+  --blob-2: #00b3d9;
+  --blob-3: #ff3d8a;
+  --blob-opacity: 0.5;
+
+  /* Glass surface */
+  --glass-fill-top: rgba(255, 255, 255, 0.1);
+  --glass-fill-bottom: rgba(255, 255, 255, 0.04);
+  /* A dark tint under the glass keeps text readable over bright blobs (WCAG AA). */
+  --glass-tint: rgba(8, 12, 28, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-highlight: rgba(255, 255, 255, 0.35);
+  --glass-sheen: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --glass-fallback: #121a30; /* solid color when backdrop-filter is unsupported */
+  --glass-blur: 18px;
+  --glass-saturate: 160%;
+
+  /* Text */
+  --text: #eef2ff;
+  --text-muted: #aab4d0;
+
+  /* Interactive */
+  --accent: #7c8cff;
+  --accent-text: #0a0f24;
+  --focus-ring: #9fb0ff;
+
+  /* Status: a vivid fill, and a text color that keeps contrast on glass */
+  --status-up: #22c55e;
+  --status-up-text: #4ade80;
+  --status-degraded: #f59e0b;
+  --status-degraded-text: #fbbf24;
+  --status-down: #ef4444;
+  --status-down-text: #f87171;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-base: #eef2fb;
+  --blob-1: #8d9bff;
+  --blob-2: #6fd8f0;
+  --blob-3: #ffa6c9;
+  --blob-opacity: 0.6;
+
+  --glass-fill-top: rgba(255, 255, 255, 0.7);
+  --glass-fill-bottom: rgba(255, 255, 255, 0.4);
+  --glass-tint: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-highlight: rgba(255, 255, 255, 0.95);
+  --glass-sheen: rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 8px 32px rgba(40, 60, 120, 0.18);
+  --glass-fallback: #f5f7fd;
+
+  --text: #0b1220;
+  --text-muted: #465170;
+
+  --accent: #3a4bd8;
+  --accent-text: #ffffff;
+  --focus-ring: #3a4bd8;
+
+  --status-up: #16a34a;
+  --status-up-text: #15803d;
+  --status-degraded: #d97706;
+  --status-degraded-text: #b45309;
+  --status-down: #dc2626;
+  --status-down-text: #b91c1c;
+}
+
+/* Tokens that do not change with the theme */
+:root {
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  --transition: 160ms ease;
+}

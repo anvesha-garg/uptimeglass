@@ -1,0 +1,166 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg-base);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* A visible focus ring for keyboard users, in both themes. */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---------- The glass surface ----------
+   Recipe: gradient fill + dark tint, blur and saturate what is behind, a translucent border,
+   an inner top highlight, a soft shadow, and a faint sheen. Part B builds components on it. */
+.glass {
+  position: relative;
+  isolation: isolate; /* keeps the ::before sheen inside this element */
+  background:
+    linear-gradient(145deg, var(--glass-fill-top), var(--glass-fill-bottom)),
+    var(--glass-tint);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 var(--glass-highlight);
+}
+
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(120deg, var(--glass-sheen) 0%, transparent 45%);
+  opacity: 0.55;
+}
+
+/* Browsers without backdrop-filter get a solid surface, so the UI stays readable. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--glass-fallback);
+  }
+}
+
+/* ---------- Small demo layout used by the first page ---------- */
+.page {
+  position: relative;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4);
+}
+
+.page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.page__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.card {
+  padding: var(--space-5);
+}
+
+.card__text {
+  color: var(--text-muted);
+  margin-top: var(--space-2);
+}
+
+.status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.pill::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pill--up {
+  color: var(--status-up-text);
+}
+.pill--degraded {
+  color: var(--status-degraded-text);
+}
+.pill--down {
+  color: var(--status-down-text);
+}
+
+.theme-toggle {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--transition);
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
