@@ -10,11 +10,12 @@ beforeEach(() => {
   delete document.documentElement.dataset.theme;
 });
 
-describe("App", () => {
-  it("shows the title and the glass card", () => {
+describe("App (style guide)", () => {
+  it("shows the style guide with its sections", () => {
     render(<App />);
-    expect(screen.getByRole("heading", { name: "UptimeGlass" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /liquid glass surface/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Style guide" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Buttons" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Status badges" })).toBeInTheDocument();
   });
 
   it("starts in the dark theme", () => {
