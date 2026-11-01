@@ -1,0 +1,57 @@
+.guide {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+.guide__body {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.guide__sidebar {
+  position: sticky;
+  top: var(--space-4);
+}
+
+.guide__main {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.guide__section h2 {
+  margin-bottom: var(--space-3);
+  font-size: 1.125rem;
+}
+
+.guide__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.guide__form {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 360px;
+}
+
+.guide__skeletons {
+  display: grid;
+  gap: var(--space-2);
+}
+
+@media (max-width: 719px) {
+  .guide__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .guide__sidebar {
+    position: static;
+  }
+}

@@ -5,6 +5,8 @@ import App from "./App";
 import "./styles/tokens.css";
 import "./styles/global.css";
 import "./styles/background.css";
+import "./components/glass/glass.css";
+import "./components/layout/layout.css";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("The #root element is missing from index.html");
