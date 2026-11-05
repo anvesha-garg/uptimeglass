@@ -1,13 +1,26 @@
-import { AnimatedBackground } from "./components/layout/AnimatedBackground";
-import { ToastProvider } from "./components/glass/ToastProvider";
-import { StyleGuide } from "./pages/StyleGuide";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter } from "react-router-dom";
 
-/** Part C replaces this with real routes. For now the style guide is the page. */
+import { AppRoutes } from "./AppRoutes";
+import { AuthProvider } from "./auth/AuthProvider";
+import { ToastProvider } from "./components/glass/ToastProvider";
+import { AnimatedBackground } from "./components/layout/AnimatedBackground";
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
+});
+
 export default function App() {
   return (
-    <ToastProvider>
-      <AnimatedBackground />
-      <StyleGuide />
-    </ToastProvider>
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <AnimatedBackground />
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </ToastProvider>
+    </QueryClientProvider>
   );
 }

@@ -5,6 +5,7 @@ import App from "./App";
 import "./styles/tokens.css";
 import "./styles/global.css";
 import "./styles/background.css";
+import "./styles/pages.css";
 import "./components/glass/glass.css";
 import "./components/layout/layout.css";
 
