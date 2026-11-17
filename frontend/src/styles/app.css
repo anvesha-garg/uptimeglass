@@ -1,0 +1,216 @@
+/* ---------- App shell ---------- */
+.app-shell {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+.app-shell .navbar {
+  flex-wrap: wrap;
+}
+
+.app-shell__user {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.app-shell__body {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.app-shell__nav {
+  position: sticky;
+  top: var(--space-4);
+}
+
+.app-shell__main {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+@media (max-width: 719px) {
+  .app-shell__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-shell__nav {
+    position: static;
+  }
+
+  .app-shell__user {
+    display: none;
+  }
+}
+
+/* ---------- Page header ---------- */
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.page-head h1 {
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.page-sub {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.section-title {
+  margin-bottom: var(--space-3);
+  font-size: 1.125rem;
+}
+
+/* ---------- Dashboard ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3);
+}
+
+.stat {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+}
+
+.stat__label {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.stat__value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat--up .stat__value {
+  color: var(--status-up-text);
+}
+.stat--degraded .stat__value {
+  color: var(--status-degraded-text);
+}
+.stat--down .stat__value {
+  color: var(--status-down-text);
+}
+
+.attention {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.attention__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.attention__name {
+  font-weight: 600;
+}
+
+/* ---------- Monitor list ---------- */
+.monitor-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.monitor-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.monitor-card__main {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.monitor-card__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.monitor-card__name {
+  font-size: 1.0625rem;
+}
+
+.monitor-card__url {
+  margin-top: var(--space-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.monitor-card__meta {
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.monitor-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ---------- Form, states ---------- */
+.monitor-form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.monitor-form__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-3);
+}
+
+.monitor-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.skeleton-stack {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.error-card {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  color: var(--status-down-text);
+  font-weight: 600;
+}
